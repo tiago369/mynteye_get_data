@@ -1,0 +1,13 @@
+stereo_image_proc:
+  ros_parameters:
+    prefilter_size: 9
+    prefilter_cap: 31
+    correlation_window_size: 15
+    min_disparity: 0
+    disparity_range: 64
+    uniqueness_ratio: 15.0
+    texture_threshold: 10
+    speckle_size: 100
+    speckle_range: 4
+    approximate_sync: false
+    queue_size: 5
