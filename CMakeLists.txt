@@ -6,9 +6,22 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 # find dependencies
-find_package(ament_cmake REQUIRED)
-find_package(image_proc REQUIRED)
-# find_package(ros2_aruco REQUIRED)
+set(dependencies 
+  ament_cmake
+  rclcpp
+  rclcpp_components
+  image_proc
+  ros2_aruco_interfaces
+  sensor_msgs)
+
+# find dependencies
+foreach(dependency ${dependencies})
+  find_package(${dependency} REQUIRED)
+endforeach()
+
+add_executable(cam_info_pub src/cam_info_pub.cpp)
+ament_target_dependencies(cam_info_pub ${dependencies})
+
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
