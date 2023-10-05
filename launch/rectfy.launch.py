@@ -65,17 +65,27 @@ def generate_launch_description():
     )
 
     aruco_left = launch_ros.actions.Node(
-        name='aruco_left',
+        name='aruco_left_node',
         package = 'ros2_aruco',
         executable = 'aruco_node',
-        # parameters = [configured_params]
+        parameters = [os.path.join(
+            pkg_share,
+            'config',
+            'aruco.yaml')],
+        remappings=[('/aruco_markers', '/left/aruco_markers'),
+                    ('/aruco_poses', '/left/aruco_poses')]
     )
 
     aruco_right = launch_ros.actions.Node(
-        name='aruco_right',
+        name='aruco_right_node',
         package = 'ros2_aruco',
         executable = 'aruco_node',
-        # parameters = [configured_params]
+        parameters = [os.path.join(
+            pkg_share,
+            'config',
+            'aruco.yaml')],
+        remappings=[('/aruco_markers', '/right/aruco_markers'),
+                    ('/aruco_poses', '/right/aruco_poses')]
     )
 
     return launch.LaunchDescription([

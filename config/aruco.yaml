@@ -1,0 +1,14 @@
+/aruco_left_node:
+  ros__parameters:
+    marker_size: 0.055
+    aruco_dictionary_id: DICT_5X5_250
+    image_topic: /mynteye/left/image_raw
+    camera_info_topic: /mynteye/left/camera_info
+
+
+/aruco_right_node:
+  ros__parameters:
+    marker_size: 0.055
+    aruco_dictionary_id: DICT_5X5_250
+    image_topic: /mynteye/left/image_raw
+    camera_info_topic: /mynteye/right/camera_info
