@@ -6,13 +6,15 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 # find dependencies
-set(dependencies 
+set(dependencies
   ament_cmake
   rclcpp
-  rclcpp_components
+  sensor_msgs
+  geometry_msgs
   image_proc
+  # ros2_aruco
   ros2_aruco_interfaces
-  sensor_msgs)
+  )
 
 # find dependencies
 foreach(dependency ${dependencies})
@@ -31,6 +33,9 @@ DESTINATION share/${PROJECT_NAME})
 
 install(DIRECTORY config
 DESTINATION share/${PROJECT_NAME})
+
+add_executable(aruco_mean src/aruco_mean.cpp)
+ament_target_dependencies(aruco_mean ${dependencies})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

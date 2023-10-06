@@ -6,7 +6,7 @@
         "limitSymbolsToIncludedHeaders": false
       },
       "includePath": [
-        "/home/tiago/tiago_projects/mynteye/c_ws/install/ros2_aruco_interfaces/include/**",
+        "/home/tiago/tiago_projects/cam_ws/install/ros2_aruco_interfaces/include/**",
         "/opt/ros/humble/include/**",
         "/usr/include/**"
       ],
