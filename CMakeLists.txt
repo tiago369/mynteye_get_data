@@ -21,6 +21,13 @@ foreach(dependency ${dependencies})
   find_package(${dependency} REQUIRED)
 endforeach()
 
+add_executable(cam_info_pub src/cam_info_pub.cpp)
+ament_target_dependencies(cam_info_pub ${dependencies})
+
+# uncomment the following section in order to fill in
+# further dependencies manually.
+# find_package(<dependency> REQUIRED)
+
 install(DIRECTORY launch
 DESTINATION share/${PROJECT_NAME})
 
