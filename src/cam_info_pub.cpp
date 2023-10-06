@@ -127,3 +127,11 @@ class CamInfoPub : public rclcpp::Node
     }
 
 };
+
+int main(int argc, char * argv[])
+{
+  rclcpp::init(argc, argv);
+  rclcpp::spin(std::make_shared<CamInfoPub>());
+  rclcpp::shutdown();
+  return 0;
+}
