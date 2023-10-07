@@ -21,12 +21,11 @@ foreach(dependency ${dependencies})
   find_package(${dependency} REQUIRED)
 endforeach()
 
+add_executable(aruco_mean src/aruco_mean.cpp)
+ament_target_dependencies(aruco_mean ${dependencies})
+
 add_executable(cam_info_pub src/cam_info_pub.cpp)
 ament_target_dependencies(cam_info_pub ${dependencies})
-
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
 
 install(DIRECTORY launch
 DESTINATION share/${PROJECT_NAME})
@@ -34,8 +33,10 @@ DESTINATION share/${PROJECT_NAME})
 install(DIRECTORY config
 DESTINATION share/${PROJECT_NAME})
 
-add_executable(aruco_mean src/aruco_mean.cpp)
-ament_target_dependencies(aruco_mean ${dependencies})
+install(TARGETS
+  # aruco_mean
+  cam_info_pub
+  DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

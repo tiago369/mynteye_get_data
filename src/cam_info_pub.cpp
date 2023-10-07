@@ -69,13 +69,13 @@ class CamInfoPub : public rclcpp::Node
         // this->declare_parameter("distortion_coefficients", distortion_coefficients);
         // this->declare_parameter("rectification_matrix", rectification_matrix);
         // this->declare_parameter("projection_matrix", projection_matrix);
-        this->declare_parameter("x_offset", 0);
+        // this->declare_parameter("x_offset", 0);
 
         frame_id_ =  this->get_parameter("frame_id").as_string();
         image_height_ =  this->get_parameter("image_height").as_int();
         image_width_ =  this->get_parameter("image_width").as_int();
         distortion_model_ = this->get_parameter("distortion_model").as_string();
-        d = this->get_parameter("D").as_double_array();
+        d_ = this->get_parameter("D").as_double_array();
         k = this->get_parameter("K").as_double_array();
         r = this->get_parameter("R").as_double_array();
         p = this->get_parameter("P").as_double_array();
@@ -114,6 +114,8 @@ class CamInfoPub : public rclcpp::Node
     void camera_info_callback(sensor_msgs::msg::CameraInfo::SharedPtr msg) const {
         sensor_msgs::msg::CameraInfo info_publish = sensor_msgs::msg::CameraInfo();
         
+        info_publish.header.stamp.sec = msg.get()->header.stamp.sec;
+        info_publish.header.stamp.nanosec = msg.get()->header.stamp.nanosec;
         info_publish.header.frame_id = frame_id_;
         info_publish.height = image_height_;
         info_publish.width = image_width_;
