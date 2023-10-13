@@ -94,10 +94,24 @@ def generate_launch_description():
                     ('/aruco_poses', '/right/aruco_poses')]
     )
 
+
+    pose_estimator_node = launch_ros.actions.Node(
+        name='pose_estimator_node',
+        package='mynteye_get_data',
+        executable='aruco_mean',
+        parameters=[os.path.join(
+            pkg_share,
+            'config',
+            'pose_estimator.yaml')],
+        remappings=[('/left_topic', '/left/aruco_markers'),
+                    ('/right_topic', '/right/aruco_markers')]
+    )
+
     return launch.LaunchDescription([
         left_cam_info_node,
         right_cam_info_node,
         image_processing_container,
         aruco_left,
-        aruco_right
+        aruco_right,
+        pose_estimator_node
         ])

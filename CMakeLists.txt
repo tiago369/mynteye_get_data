@@ -34,7 +34,7 @@ install(DIRECTORY config
 DESTINATION share/${PROJECT_NAME})
 
 install(TARGETS
-  # aruco_mean
+  aruco_mean
   cam_info_pub
   DESTINATION lib/${PROJECT_NAME})
 
