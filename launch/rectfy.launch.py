@@ -14,21 +14,27 @@ from launch_ros.descriptions import ComposableNode
 def generate_launch_description():
     pkg_share = get_package_share_directory('mynteye_get_data')
 
-    # stereo_image_proc_node = launch_ros.actions.Node(
-    #     package='stereo_image_proc',
-    #     executable='stereo_image_proc',
-    #     name='stereo_image_proc',
-    #     output='screen',
-    #     parameters=[os.path.join(
-    #         pkg_share,
-    #         'config',
-    #         'stereo_image_proc.yaml'
-    #     )],
-    #     remappings=[('left/image_raw',    '/mynteye/left/image_raw'),
-    #                 ('left/camera_info',  '/mynteye/left/camera_info'),
-    #                 ('right/image_raw',   '/mynteye/right/image_raw'),
-    #                 ('right/camera_info', '/mynteye/right/camera_info')],
-    # )
+    left_cam_info_node = launch_ros.actions.Node(
+        name='cam_info_pub_node_left',
+        package = 'mynteye_get_data',
+        executable = 'cam_info_pub',
+        parameters = [os.path.join(
+            pkg_share,
+            'config',
+            'camera_info.yaml')],
+        remappings=[('camera_info_sub', '/mynteye/left/camera_info'),
+                    ('camera_info_pub', '/left/camera_info')])
+    
+    right_cam_info_node = launch_ros.actions.Node(
+        name='cam_info_pub_node_right',
+        package = 'mynteye_get_data',
+        executable = 'cam_info_pub',
+        parameters = [os.path.join(
+            pkg_share,
+            'config',
+            'camera_info.yaml')],
+        remappings=[('camera_info_sub', '/mynteye/right/camera_info'),
+                    ('camera_info_pub', '/right/camera_info')])
 
     composable_nodes = [
         ComposableNode(
@@ -38,7 +44,7 @@ def generate_launch_description():
             # Remap subscribers and publishers
             remappings=[
                 ('/image', '/mynteye/left/image_raw'),
-                ('/camera_info', '/mynteye/left/camera_info'),
+                ('/camera_info', '/left/camera_info'),
                 ('/image_rect', '/left/image_rect')
             ],
         ),
@@ -49,7 +55,7 @@ def generate_launch_description():
             # Remap subscribers and publishers
             remappings=[
                 ('/image', '/mynteye/right/image_raw'),
-                ('/camera_info', '/mynteye/right/camera_info'),
+                ('/camera_info', '/right/camera_info'),
                 ('/image_rect', '/right/image_rect')
             ],
         ),
@@ -88,8 +94,24 @@ def generate_launch_description():
                     ('/aruco_poses', '/right/aruco_poses')]
     )
 
+
+    pose_estimator_node = launch_ros.actions.Node(
+        name='pose_estimator_node',
+        package='mynteye_get_data',
+        executable='aruco_mean',
+        parameters=[os.path.join(
+            pkg_share,
+            'config',
+            'pose_estimator.yaml')],
+        remappings=[('/left_topic', '/left/aruco_markers'),
+                    ('/right_topic', '/right/aruco_markers')]
+    )
+
     return launch.LaunchDescription([
+        left_cam_info_node,
+        right_cam_info_node,
         image_processing_container,
         aruco_left,
-        aruco_right
+        aruco_right,
+        pose_estimator_node
         ])
