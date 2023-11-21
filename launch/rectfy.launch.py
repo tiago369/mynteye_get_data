@@ -66,8 +66,8 @@ def generate_launch_description():
         namespace='',
         package='rclcpp_components',
         executable='component_container',
-        composable_node_descriptions=composable_nodes,
-        output='screen'
+        composable_node_descriptions=composable_nodes
+        # output='screen'
     )
 
     aruco_left = launch_ros.actions.Node(
@@ -99,6 +99,7 @@ def generate_launch_description():
         name='pose_estimator_node',
         package='mynteye_get_data',
         executable='aruco_mean',
+        output='screen',
         parameters=[os.path.join(
             pkg_share,
             'config',

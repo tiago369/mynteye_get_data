@@ -5,10 +5,11 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
-
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include "rclcpp/rclcpp.hpp"
 #include "ros2_aruco_interfaces/msg/aruco_markers.hpp"
 #include "geometry_msgs/msg/pose.hpp"
+#include <geometry_msgs/msg/quaternion.hpp>
 
 class ArucoMean : public rclcpp::Node
 {
@@ -16,9 +17,9 @@ class ArucoMean : public rclcpp::Node
     ArucoMean()
     : Node("aruco_mean")
     {
-        std::vector<long int> ids = {0,1,2,3};
-        std::vector<double> left_offset = {0.0,0.0,0.0};
-        std::vector<double> right_offset = {0.0,0.0,0.0};
+        std::vector<long int> ids = {0, 1, 2, 3};
+        std::vector<double> left_offset = {0.0, 0.0, 0.0};
+        std::vector<double> right_offset = {0.0, 0.0, 0.0};
 
         this->declare_parameter("filename", "file.csv");
         this->declare_parameter("left_offset", left_offset);
@@ -33,18 +34,43 @@ class ArucoMean : public rclcpp::Node
         buffer_size_ = this->get_parameter("buffer").as_int();
 
         left_subscription_ = this->create_subscription<ros2_aruco_interfaces::msg::ArucoMarkers>(
-            "left_topic", 10,std::bind(&ArucoMean::left_aruco_subscriber,
+            "left_topic", 10, std::bind(&ArucoMean::left_aruco_subscriber,
             this, std::placeholders::_1));
         right_subscription_ = this->create_subscription<ros2_aruco_interfaces::msg::ArucoMarkers>(
-            "right_topic", 10,std::bind(&ArucoMean::right_aruco_subscriber,
+            "right_topic", 10, std::bind(&ArucoMean::right_aruco_subscriber,
             this, std::placeholders::_1));
         pose_publisher_ = this->create_publisher<ros2_aruco_interfaces::msg::ArucoMarkers>("pose", 10);
-        timer_ = this->create_wall_timer(std::chrono::milliseconds(500), 
+        timer_ = this->create_wall_timer(std::chrono::milliseconds(500),
             std::bind(&ArucoMean::mean_pose, this));
 
     }
 
     private:
+
+    void quaternionToRPY(geometry_msgs::msg::Pose pose, double& roll, double& pitch, double& yaw) {
+        // Extract quaternion components from the Pose
+        double qx = pose.orientation.x;
+        double qy = pose.orientation.y;
+        double qz = pose.orientation.z;
+        double qw = pose.orientation.w;
+
+        // Roll (x-axis rotation)
+        double sinr_cosp = 2.0 * (qw * qx + qy * qz);
+        double cosr_cosp = 1.0 - 2.0 * (qx * qx + qy * qy);
+        roll = std::atan2(sinr_cosp, cosr_cosp);
+
+        // Pitch (y-axis rotation)
+        double sinp = 2.0 * (qw * qy - qz * qx);
+        if (std::abs(sinp) >= 1)
+            pitch = std::copysign(M_PI / 2, sinp); // use 90 degrees if out of range
+        else
+            pitch = std::asin(sinp);
+
+        // Yaw (z-axis rotation)
+        double siny_cosp = 2.0 * (qw * qz + qx * qy);
+        double cosy_cosp = 1.0 - 2.0 * (qy * qy + qz * qz);
+        yaw = std::atan2(siny_cosp, cosy_cosp);
+}
 
     bool areVectorsEqual(const std::vector<long int> vec1, const std::vector<long int> vec2) {
         // Check if the sizes are different
@@ -91,47 +117,140 @@ class ArucoMean : public rclcpp::Node
         }
     }
 
-    ros2_aruco_interfaces::msg::ArucoMarkers vector_mean(std::vector<ros2_aruco_interfaces::msg::ArucoMarkers> aruco){
-        ros2_aruco_interfaces::msg::ArucoMarkers result = ros2_aruco_interfaces::msg::ArucoMarkers();
-        RCLCPP_INFO(this->get_logger(),"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+    // ros2_aruco_interfaces::msg::ArucoMarkers vector_mean(std::vector<ros2_aruco_interfaces::msg::ArucoMarkers> aruco){
+    //     ros2_aruco_interfaces::msg::ArucoMarkers result = ros2_aruco_interfaces::msg::ArucoMarkers();
 
-        for(int j=0; j < static_cast<int>(ids_.size()); j++){
-            result.marker_ids = aruco.at(j).marker_ids;
-            for(int i=0; i < static_cast<int>(aruco.size()); i++){
-                result.poses.at(j).position.x += aruco.at(i).poses.at(j).position.x;
-                result.poses.at(j).position.y += aruco.at(i).poses.at(j).position.y;
-                result.poses.at(j).position.z += aruco.at(i).poses.at(j).position.z;
-                RCLCPP_INFO(this->get_logger(),"BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB");
-            }
-        result.poses.at(j).position.x = result.poses.at(j).position.x / aruco.size();
-        result.poses.at(j).position.y = result.poses.at(j).position.y / aruco.size();
-        result.poses.at(j).position.z = result.poses.at(j).position.z / aruco.size();
+    //     for(int j=0; j < static_cast<int>(ids_.size()); j++){
+    //         result.marker_ids = aruco.at(j).marker_ids;
+    //         result.poses.push_back(geometry_msgs::msg::Pose());
+    //         result.poses.at(j).position.x = 0.0;
+    //         result.poses.at(j).position.y = 0.0;
+    //         result.poses.at(j).position.z = 0.0;
+
+    //         for(int i=0; i < static_cast<int>(aruco.size()); i++){
+    //             result.poses.at(j).position.x += aruco.at(i).poses.at(j).position.x;
+    //             result.poses.at(j).position.y += aruco.at(i).poses.at(j).position.y;
+    //             result.poses.at(j).position.z += aruco.at(i).poses.at(j).position.z;
+    //         }
+    //     result.poses.at(j).position.x = result.poses.at(j).position.x / aruco.size();
+    //     result.poses.at(j).position.y = result.poses.at(j).position.y / aruco.size();
+    //     result.poses.at(j).position.z = result.poses.at(j).position.z / aruco.size();
+    //     }
+
+    //     return result;
+    // }
+
+    ros2_aruco_interfaces::msg::ArucoMarkers vector_mean(const std::vector<ros2_aruco_interfaces::msg::ArucoMarkers> aruco) {
+    // Assuming all ArucoMarkers in the input vector have the same size
+    size_t numMarkers = aruco[0].marker_ids.size();
+
+    ros2_aruco_interfaces::msg::ArucoMarkers result;
+    result.marker_ids.resize(numMarkers);
+    result.poses.resize(numMarkers);
+
+    // Iterate over each marker
+    for (size_t j = 0; j < numMarkers; ++j) {
+        // Initialize the sum for each component of the position and orientation
+        double sumX = 0.0;
+        double sumY = 0.0;
+        double sumZ = 0.0;
+        double sumRoll = 0.0;
+        double sumPitch = 0.0;
+        double sumYaw = 0.0;
+
+        // Iterate over each ArucoMarkers message
+        for (const auto& arucoMsg : aruco) {
+            // Accumulate the position components
+            sumX += arucoMsg.poses[j].position.x;
+            sumY += arucoMsg.poses[j].position.y;
+            sumZ += arucoMsg.poses[j].position.z;
+
+            // Convert quaternion to RPY
+            tf2::Quaternion quat;
+            tf2::fromMsg(arucoMsg.poses[j].orientation, quat);
+            double roll, pitch, yaw;
+            tf2::Matrix3x3(quat).getRPY(roll, pitch, yaw);
+
+            // Accumulate the RPY components
+            sumRoll += roll;
+            sumPitch += pitch;
+            sumYaw += yaw;
         }
 
-        return result;
+        // Calculate the mean position components
+        result.poses[j].position.x = sumX / aruco.size();
+        result.poses[j].position.y = sumY / aruco.size();
+        result.poses[j].position.z = sumZ / aruco.size();
+
+        // Calculate the mean RPY components
+        double meanRoll = sumRoll / aruco.size();
+        double meanPitch = sumPitch / aruco.size();
+        double meanYaw = sumYaw / aruco.size();
+
+        // Convert mean RPY back to quaternion
+        tf2::Quaternion meanQuat;
+        meanQuat.setRPY(meanRoll, meanPitch, meanYaw);
+
+        // Convert quaternion to geometry_msgs::msg::Quaternion
+        result.poses[j].orientation = tf2::toMsg(meanQuat);
+
+        // Assuming marker_ids are the same for all ArucoMarkers messages
+        result.marker_ids[j] = aruco[0].marker_ids[j];
     }
 
-    ros2_aruco_interfaces::msg::ArucoMarkers aruco_mean(ros2_aruco_interfaces::msg::ArucoMarkers one,
-                                  ros2_aruco_interfaces::msg::ArucoMarkers two) {
-        ros2_aruco_interfaces::msg::ArucoMarkers result = ros2_aruco_interfaces::msg::ArucoMarkers();
-        for(int i=0; i < static_cast<int>(one.marker_ids.size()); i++){
-            result.poses.at(i).position.x = (one.poses.at(i).position.x + two.poses.at(i).position.x)/2;
-            result.poses.at(i).position.y = (one.poses.at(i).position.y + two.poses.at(i).position.y)/2;
-            result.poses.at(i).position.z = (one.poses.at(i).position.z + two.poses.at(i).position.z)/2;
-        }
-        return result;
+    return result;
+}
+
+    // ros2_aruco_interfaces::msg::ArucoMarkers aruco_mean(ros2_aruco_interfaces::msg::ArucoMarkers one,
+    //                               ros2_aruco_interfaces::msg::ArucoMarkers two) {
+    //     ros2_aruco_interfaces::msg::ArucoMarkers result = ros2_aruco_interfaces::msg::ArucoMarkers();
+    //     for(int i=0; i < static_cast<int>(one.marker_ids.size()); i++){
+    //         result.poses.push_back(geometry_msgs::msg::Pose());
+    //         result.poses.at(i).position.x = (one.poses.at(i).position.x + two.poses.at(i).position.x)/2;
+    //         result.poses.at(i).position.y = (one.poses.at(i).position.y + two.poses.at(i).position.y)/2;
+    //         result.poses.at(i).position.z = (one.poses.at(i).position.z + two.poses.at(i).position.z)/2;
+    //     }
+    //     return result;
+    // }
+
+    ros2_aruco_interfaces::msg::ArucoMarkers aruco_mean(const ros2_aruco_interfaces::msg::ArucoMarkers one,
+                                                        const ros2_aruco_interfaces::msg::ArucoMarkers two) {
+
+    ros2_aruco_interfaces::msg::ArucoMarkers result;
+
+    for (size_t i = 0; i < one.marker_ids.size(); ++i) {
+        result.marker_ids.push_back(one.marker_ids[i]);
+
+        result.poses.push_back(geometry_msgs::msg::Pose());
+        result.poses[i].position.x = (one.poses[i].position.x + two.poses[i].position.x) / 2;
+        result.poses[i].position.y = (one.poses[i].position.y + two.poses[i].position.y) / 2;
+        result.poses[i].position.z = (one.poses[i].position.z + two.poses[i].position.z) / 2;
+
+        // Convert quaternions to tf2::Quaternion for mean calculation
+        tf2::Quaternion one_quat, two_quat, mean_quat;
+        tf2::fromMsg(one.poses[i].orientation, one_quat);
+        tf2::fromMsg(two.poses[i].orientation, two_quat);
+
+        // Calculate the mean quaternion
+        mean_quat = tf2::slerp(one_quat, two_quat, 0.5);
+
+        // Convert mean quaternion to geometry_msgs::msg::Quaternion
+        result.poses[i].orientation = tf2::toMsg(mean_quat);
     }
+
+    return result;
+}
 
     ros2_aruco_interfaces::msg::ArucoMarkers add_offset(ros2_aruco_interfaces::msg::ArucoMarkers aruco, std::vector<double> offset){
-        ros2_aruco_interfaces::msg::ArucoMarkers result = ros2_aruco_interfaces::msg::ArucoMarkers();
+        // ros2_aruco_interfaces::msg::ArucoMarkers result = ros2_aruco_interfaces::msg::ArucoMarkers();
         // result.marker_ids = aruco.at(0).marker_ids;
         for(int j=0; j < static_cast<int>(aruco.marker_ids.size()); j++){
-            result.poses.at(j).position.x += offset.at(0);
-            result.poses.at(j).position.y += offset.at(1);
-            result.poses.at(j).position.z += offset.at(2);
+            aruco.poses.at(j).position.x += offset.at(0);
+            aruco.poses.at(j).position.y += offset.at(1);
+            aruco.poses.at(j).position.z += offset.at(2);
             }
 
-        return result;
+        return aruco;
     }
 
     void mean_pose() {

@@ -1,7 +1,7 @@
 /aruco_left_node:
   ros__parameters:
     marker_size: 0.015
-    aruco_dictionary_id: DICT_4X4_250
+    aruco_dictionary_id: DICT_6X6_250
     image_topic: /left/image_rect
     camera_info_topic: /left/camera_info
 
@@ -9,6 +9,6 @@
 /aruco_right_node:
   ros__parameters:
     marker_size: 0.015
-    aruco_dictionary_id: DICT_4X4_250
+    aruco_dictionary_id: DICT_6X6_250
     image_topic: /right/image_rect
     camera_info_topic: /right/camera_info

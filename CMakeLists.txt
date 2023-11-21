@@ -13,6 +13,7 @@ set(dependencies
   geometry_msgs
   image_proc
   # ros2_aruco
+  tf2_geometry_msgs
   ros2_aruco_interfaces
   )
 
