@@ -24,7 +24,7 @@ def generate_launch_description():
             'camera_info.yaml')],
         remappings=[('camera_info_sub', '/mynteye/left/camera_info'),
                     ('camera_info_pub', '/left/camera_info')])
-    
+
     right_cam_info_node = launch_ros.actions.Node(
         name='cam_info_pub_node_right',
         package = 'mynteye_get_data',
@@ -93,7 +93,6 @@ def generate_launch_description():
         remappings=[('/aruco_markers', '/right/aruco_markers'),
                     ('/aruco_poses', '/right/aruco_poses')]
     )
-
 
     pose_estimator_node = launch_ros.actions.Node(
         name='pose_estimator_node',

@@ -89,30 +89,59 @@ class ArucoMean : public rclcpp::Node
         return sortedVec1 == sortedVec2;
     }
 
+    ros2_aruco_interfaces::msg::ArucoMarkers organize_markers(ros2_aruco_interfaces::msg::ArucoMarkers arucoMarkersMsg) {
+        // Estrutura auxiliar para manter o índice original e o identificador do marcador
+        std::vector<std::pair<int, int>> indexIdPairs;
+
+        for (int i = 0; i < static_cast<int>(arucoMarkersMsg.marker_ids.size()); i++) {
+            indexIdPairs.push_back(std::make_pair(i, arucoMarkersMsg.marker_ids[i]));
+        }
+
+        // Ordena com base no identificador do marcador
+        std::sort(indexIdPairs.begin(), indexIdPairs.end(), 
+                [](const std::pair<int, int> &a, const std::pair<int, int> &b) {
+                    return a.second < b.second;
+                });
+
+        // Cria cópias temporárias das listas originais
+        auto markersOriginal = arucoMarkersMsg.marker_ids;
+        auto posesOriginal = arucoMarkersMsg.poses;
+
+        // Reorganiza as listas com base na nova ordem
+        for (int i = 0; i < static_cast<int>(indexIdPairs.size()); i++) {
+            arucoMarkersMsg.marker_ids[i] = markersOriginal[indexIdPairs[i].first];
+            arucoMarkersMsg.poses[i] = posesOriginal[indexIdPairs[i].first];
+        }
+
+        return arucoMarkersMsg;
+    }
+
     void left_aruco_subscriber(const ros2_aruco_interfaces::msg::ArucoMarkers & msg) {
         std::lock_guard<std::mutex> lock(mutex_);
-        if(areVectorsEqual(ids_, msg.marker_ids)){
-            RCLCPP_INFO(this->get_logger(),"GOT LEFT");
+        if (areVectorsEqual(ids_, msg.marker_ids)) {
+            RCLCPP_INFO(this->get_logger(), "GOT LEFT");
+            ros2_aruco_interfaces::msg::ArucoMarkers
+            new_msg = organize_markers(msg);
             if (static_cast<int>(left_aruco_.size()) <= buffer_size_) {
-                left_aruco_.push_back(msg);
-            
+                left_aruco_.push_back(new_msg);
             } else {
-                RCLCPP_INFO(this->get_logger(),"ERROR");
                 left_aruco_.erase(left_aruco_.begin());
-                left_aruco_.push_back(msg);
+                left_aruco_.push_back(new_msg);
             }
         }
     }
 
     void right_aruco_subscriber(const ros2_aruco_interfaces::msg::ArucoMarkers & msg) {
         std::lock_guard<std::mutex> lock(mutex_);
-        if(areVectorsEqual(ids_, msg.marker_ids)){
-            RCLCPP_INFO(this->get_logger(),"GOT RIGHT");
+        if (areVectorsEqual(ids_, msg.marker_ids)) {
+            RCLCPP_INFO(this->get_logger(), "GOT RIGHT");
+            ros2_aruco_interfaces::msg::ArucoMarkers
+            new_msg = organize_markers(new_msg);
             if (static_cast<int>(right_aruco_.size()) <= buffer_size_) {
-                right_aruco_.push_back(msg);
+                right_aruco_.push_back(new_msg);
             } else {
                 right_aruco_.erase(right_aruco_.begin());
-                right_aruco_.push_back(msg);
+                right_aruco_.push_back(new_msg);
             }
         }
     }
