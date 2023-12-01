@@ -91,7 +91,7 @@ class ArucoMean : public rclcpp::Node
 
     ros2_aruco_interfaces::msg::ArucoMarkers organize_markers(ros2_aruco_interfaces::msg::ArucoMarkers arucoMarkersMsg) {
         // Estrutura auxiliar para manter o índice original e o identificador do marcador
-        std::vector<std::pair<int, int>> indexIdPairs;
+        std::vector<std::pair<int, int>> indexIdPairs {};
 
         for (int i = 0; i < static_cast<int>(arucoMarkersMsg.marker_ids.size()); i++) {
             indexIdPairs.push_back(std::make_pair(i, arucoMarkersMsg.marker_ids[i]));
@@ -209,7 +209,7 @@ class ArucoMean : public rclcpp::Node
 
     ros2_aruco_interfaces::msg::ArucoMarkers aruco_mean(const ros2_aruco_interfaces::msg::ArucoMarkers one,
                                                         const ros2_aruco_interfaces::msg::ArucoMarkers two) {
-    ros2_aruco_interfaces::msg::ArucoMarkers result;
+    ros2_aruco_interfaces::msg::ArucoMarkers result = ros2_aruco_interfaces::msg::ArucoMarkers;
 
     for (size_t i = 0; i < one.marker_ids.size(); ++i) {
         result.marker_ids.push_back(one.marker_ids[i]);
@@ -285,12 +285,12 @@ class ArucoMean : public rclcpp::Node
     rclcpp::TimerBase::SharedPtr timer_;
     std::vector<ros2_aruco_interfaces::msg::ArucoMarkers> left_aruco_{};
     std::vector<ros2_aruco_interfaces::msg::ArucoMarkers> right_aruco_{};
-    int buffer_size_;
-    std::string filename_;
+    int buffer_size_ = 0;
+    std::string filename_ = "";
     std::mutex mutex_;
-    std::vector<long int> ids_;
-    std::vector<double> left_offset_;
-    std::vector<double> right_offset_;
+    std::vector<long int> ids_{0};
+    std::vector<double> left_offset_{0};
+    std::vector<double> right_offset_{0};
 };
 
 int main(int argc, char ** argv)
