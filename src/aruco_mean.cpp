@@ -209,7 +209,7 @@ class ArucoMean : public rclcpp::Node
 
     ros2_aruco_interfaces::msg::ArucoMarkers aruco_mean(const ros2_aruco_interfaces::msg::ArucoMarkers one,
                                                         const ros2_aruco_interfaces::msg::ArucoMarkers two) {
-    ros2_aruco_interfaces::msg::ArucoMarkers result = ros2_aruco_interfaces::msg::ArucoMarkers;
+    ros2_aruco_interfaces::msg::ArucoMarkers result = ros2_aruco_interfaces::msg::ArucoMarkers();
 
     for (size_t i = 0; i < one.marker_ids.size(); ++i) {
         result.marker_ids.push_back(one.marker_ids[i]);
