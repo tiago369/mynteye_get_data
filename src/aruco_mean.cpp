@@ -120,13 +120,12 @@ class ArucoMean : public rclcpp::Node
         std::lock_guard<std::mutex> lock(mutex_);
         if (areVectorsEqual(ids_, msg.marker_ids)) {
             RCLCPP_INFO(this->get_logger(), "GOT LEFT");
-            ros2_aruco_interfaces::msg::ArucoMarkers
-            new_msg = organize_markers(msg);
+            new_left_msg = organize_markers(msg);
             if (static_cast<int>(left_aruco_.size()) <= buffer_size_) {
-                left_aruco_.push_back(new_msg);
+                left_aruco_.push_back(new_left_msg);
             } else {
                 left_aruco_.erase(left_aruco_.begin());
-                left_aruco_.push_back(new_msg);
+                left_aruco_.push_back(new_left_msg);
             }
         }
     }
@@ -135,13 +134,12 @@ class ArucoMean : public rclcpp::Node
         std::lock_guard<std::mutex> lock(mutex_);
         if (areVectorsEqual(ids_, msg.marker_ids)) {
             RCLCPP_INFO(this->get_logger(), "GOT RIGHT");
-            ros2_aruco_interfaces::msg::ArucoMarkers
-            new_msg = organize_markers(new_msg);
+            new_right_msg = organize_markers(msg);
             if (static_cast<int>(right_aruco_.size()) <= buffer_size_) {
-                right_aruco_.push_back(new_msg);
+                right_aruco_.push_back(new_right_msg);
             } else {
                 right_aruco_.erase(right_aruco_.begin());
-                right_aruco_.push_back(new_msg);
+                right_aruco_.push_back(new_right_msg);
             }
         }
     }
@@ -270,7 +268,6 @@ class ArucoMean : public rclcpp::Node
         }
         RCLCPP_INFO(this->get_logger(), "Calculating pose");
         // Calculate the mean off the points
-        ros2_aruco_interfaces::msg::ArucoMarkers pose;
         pose = aruco_mean(add_offset(vector_mean(left_aruco_), left_offset_),
                           add_offset(vector_mean(right_aruco_), right_offset_));
         mutex_.unlock();
@@ -285,6 +282,9 @@ class ArucoMean : public rclcpp::Node
     rclcpp::TimerBase::SharedPtr timer_;
     std::vector<ros2_aruco_interfaces::msg::ArucoMarkers> left_aruco_{};
     std::vector<ros2_aruco_interfaces::msg::ArucoMarkers> right_aruco_{};
+    ros2_aruco_interfaces::msg::ArucoMarkers new_left_msg{};
+    ros2_aruco_interfaces::msg::ArucoMarkers new_right_msg{};
+    ros2_aruco_interfaces::msg::ArucoMarkers pose{};
     int buffer_size_ = 0;
     std::string filename_ = "";
     std::mutex mutex_;
